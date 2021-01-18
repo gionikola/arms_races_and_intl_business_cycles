@@ -254,6 +254,175 @@ ggplot(topspenders9119_nousachina, aes(x= year, y = expenditure, color = top10sp
 
 ![](data_exploration_files/figure-gfm/exp_plots2-3.png)<!-- -->
 
+Transform the original dataset into one with growth rates.
+
+``` r
+# Copy data into data2
+data2 <- data
+
+# Gather country names
+names <- names(data2)
+names <- names[c(2:length(names))]
+country <- names
+
+# Transform to logs
+for (i in c(2:length(data2[1,]))) {
+  data2[,i] <- log(data2[,i])
+}
+
+# Transform to first differences
+for (i in c(2:length(data2[1,]))) {
+data2[,i] <- 100*c(NA, diff(data2[,i], differences = 1))
+}
+
+# The following is essentially the same code as the previous chunk
+
+# Gather 1992 data in single dataframe 
+data2temp <- data2 %>% filter( year == 1988) 
+data2temp <- as.vector(data2temp)
+names(data2temp) <- NULL
+expenditure <- data2temp[c(2:length(data2temp))]
+expenditure <- matrix(expenditure, ncol=1, byrow=TRUE)
+year <- c(2:length(data2temp))
+for (i in c(1:length(year))){
+  year[i] = 1988
+}
+data2temp <- data.frame(expenditure, country, year)
+data2_new <- data2temp 
+
+# Iterate over all other years to gather into dataframe
+for (t in c(1989:2019)){
+  
+  data2temp <- data2 %>% filter( year == t) 
+  data2temp <- as.vector(data2temp)
+  names(data2temp) <- NULL
+  expenditure <- data2temp[c(2:length(data2temp))]
+  expenditure <- matrix(expenditure, ncol=1, byrow=TRUE)
+  year <- c(1:length(expenditure))
+  for (i in c(1:length(year))){
+    year[i] = t
+  }
+  data2temp <- data.frame(expenditure, country, year)
+  data2_new <- rbind(data2_new, data2temp) 
+  
+}
+
+# Convert all numeric topspenders variables to double
+data2_new$year <- as.double(data2_new$year)
+data2_new$expenditure <- as.double(data2_new$expenditure)
+
+# Filter topspenders datasets for year > 1991
+data2_new <- data2_new %>% filter(year > 1991)
+```
+
+Plot top-10 military spender growth rates.
+
+``` r
+# Create country-specific datasets for later use
+chinaspend2_df <- data2_new %>% filter(country == "china")
+francespend2_df <- data2_new %>% filter(country == "france")
+germanyspend2_df <- data2_new %>% filter(country == "germany")
+indiaspend2_df <- data2_new %>% filter(country == "india")
+japanspend2_df <- data2_new %>% filter(country == "japan")
+russiaspend2_df <- data2_new %>% filter(country == "russia")
+saudi_arabiaspend2_df <- data2_new %>% filter(country == "saudi_arabia")
+south_koreaspend2_df <- data2_new %>% filter(country == "south_korea")
+ukspend2_df <- data2_new %>% filter(country == "uk")
+usaspend2_df <- data2_new %>% filter(country == "usa")
+
+# Top 10 dataset w/o US and China
+data2_top10 <- rbind(francespend2_df, germanyspend2_df)
+data2_top10 <- rbind(data2_top10, indiaspend2_df)
+data2_top10 <- rbind(data2_top10, japanspend2_df)
+data2_top10 <- rbind(data2_top10, russiaspend2_df)
+data2_top10 <- rbind(data2_top10, saudi_arabiaspend2_df)
+data2_top10 <- rbind(data2_top10, south_koreaspend2_df)
+data2_top10 <- rbind(data2_top10, ukspend2_df)
+data2_top10 <- rbind(data2_top10, usaspend2_df)
+data2_top10 <- rbind(data2_top10, chinaspend2_df)
+
+# Create a timeplot of top-10 spender expenditure growth rates
+ggplot(data2_top10, aes(x= year, y = expenditure, color = country, group = country)) +
+  geom_line(size=1.5) +
+  theme_classic() +
+  labs(x = "Year", y = "Total Expenditure Growth Rate (%)") +
+  ggtitle("Military Expenditure Growth Rates of Top Military Spenders, 1991-2019") +
+    scale_color_discrete(name = "Country")
+```
+
+![](data_exploration_files/figure-gfm/exp_plots3-1.png)<!-- -->
+
 ### Preliminary Factor Analysis
 
-Text.
+Apply simple principal component analysis to estimate expenditure growth
+rate factors among the top 10 spenders.
+
+``` r
+#
+# Estimate factors f_{1,t} and f_{2,t}
+# (Similar to Jeremy's code)
+#
+
+# Form a data matrix
+X1 = data2[,"china"]
+X2 = data2[,"usa"]
+X3 = data2[,"uk"]
+X4 = data2[,"france"]
+X5 = data2[,"germany"]
+X6 = data2[,"india"]
+X7 = data2[,"japan"]
+X8 = data2[,"russia"]
+X9 = data2[,"saudi_arabia"]
+X10 = data2[,"south_korea"]
+X <- data.frame(X1,X2,X3,X4,X5,X6,X7,X8,X9,X10)
+names(X) <- NULL
+X <- as.matrix(X)
+
+# Center and scale the matrix
+X = scale(X, center = TRUE, scale = TRUE)
+
+# Form the principal component based weight matrix for dynamic factors.
+pca = prcomp(na.omit(X), scale = TRUE)
+weights = pca$rotation 
+
+# Form the principal component based estimates of dynamic factors
+factors = X %*% weights 
+
+# Capture the first two factors
+factor1 = factors[,1]
+factor2 = factors[,2]
+
+#
+# Put factors together into dataframe 
+#
+year = c(1988:2019)
+
+# Create dataframe for factor1
+factor_value <- factor1
+factor_name <- c(1:length(factor_value))
+for (i in c(1:length(factor_name))){
+  factor_name[i] = "1st Component"
+}
+factor1_df <- data.frame(year, factor_value, factor_name)
+
+# Create dataframe for factor2
+factor_value <- factor2
+factor_name <- c(1:length(factor_value))
+for (i in c(1:length(factor_name))){
+  factor_name[i] = "2nd Component"
+}
+factor2_df <- data.frame(year, factor_value, factor_name)
+
+# rBind factor 1 & 2 dataframes
+factors <- rbind(factor1_df, factor2_df)
+
+# Create timeplot for factors 1 & 2
+ggplot(factors, aes(x= year, y = factor_value, color = factor_name, group = factor_name)) +
+  geom_line(size=1.5) +
+  theme_classic() +
+  labs(x = "Year", y = "Factor Value") +
+  ggtitle("Military Expenditure Growth Factors of Top Military Spenders, 1991-2019") +
+    scale_color_discrete(name = "Factor")
+```
+
+![](data_exploration_files/figure-gfm/simple_pca-1.png)<!-- -->
