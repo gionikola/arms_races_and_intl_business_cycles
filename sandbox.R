@@ -8,10 +8,6 @@ library(dplyr)
 data <- read_csv("https://raw.githubusercontent.com/gnikolaiuoregon/military_cycles/main/real_military_spending_cleaned.csv?token=ASLTQLXG4CKJDXPMTHSTPA3ABNBFW")
 data <- as.data.frame(data)
 
-# Plot 
-ggplot(data, aes(x=year, y=south_korea)) +
-  geom_line() +
-  theme_classic()
 
 # Transform to logs
 for (i in c(2:length(data[1,]))) {
@@ -65,3 +61,10 @@ cor(data88$usa, data88$israel, "pairwise.complete.obs")
 cor(data88$usa, data88$uae, "pairwise.complete.obs")
 cor(data88$usa, data88$uk, "pairwise.complete.obs")
 cor(data88$usa, data88$canada, "pairwise.complete.obs")
+
+
+
+
+
+
+
