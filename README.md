@@ -1,5 +1,4 @@
-# military_cycles
+# Arms Races and International Business Cycles
+### Work in Progress
 
-Estimate international military resource accumulation interlinkages using a dynamic hierarchical factor model.
 
-Work in progress.
