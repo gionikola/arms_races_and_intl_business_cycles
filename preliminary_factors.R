@@ -44,7 +44,7 @@ for (i in c(2:length(data2[1,]))) {
 
 # Remove sparsely observed columns
 data3 <- data2 %>%
-          select(-c(africa, north_africa, sub_saharan, 
+          select(-c(africa, north_africa, sub_saharan, somalia,
                     americas, central_america_and_the_caribbean, 
                     north_america, south_america,
                     asia_and_oceania, central_asia, east_asia, north_korea, 
@@ -53,3 +53,9 @@ data3 <- data2 %>%
                     yugoslavia, eastern_europe, ussr, western_europe,
                     middle_east, syria, north_yemen))
 
+# Convert data from wide to long form
+data4 <- reshape(data3,
+                 direction = "long",
+                 varying = list(names(data3)[2,length(names(data3))]),
+                 v.names = "Value",
+                 idvar = c("Country"))
