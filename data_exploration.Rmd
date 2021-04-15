@@ -14,6 +14,7 @@ knitr::opts_chunk$set(cache = TRUE) ## Cache the results to increase performance
 
 ```{r libs, include = FALSE}
 if (!require("pacman")) install.packages("pacman")
+library(pacman)
 ## Note: The `p_load()` function from the pacman package is a convenient way to 
 ## install (if necessary) and load packages all at once. You can think of this
 ## as an alternative to the normal `library(ggplot2); library(here);...` way of
@@ -35,7 +36,7 @@ Load the raw data.
 ```{r data1, message=FALSE, warning=FALSE}
 
 # Import dataset
-data <- read_csv("https://raw.githubusercontent.com/gnikolaiuoregon/military_cycles/main/real_military_spending_cleaned.csv?token=ASLTQLXG4CKJDXPMTHSTPA3ABNBFW")
+data <- read_csv("real_military_spending_cleaned.csv")
 
 # Store the dataset as a dataframe
 data <- as.data.frame(data)
